@@ -1,4 +1,15 @@
 #!/bin/bash
+declare -a XO
+chooseXorO(){ 
+if [[ $((RANDOM%2)) -eq '0'  ]]; then
+    PLAYER=X
+    COMPUTER=O
+else
+    PLAYER=O
+    COMPUTER=X
+fi
+echo letter assigned to you is $PLAYER the computer is $COMPUTER 
+}
 
 resetBox(){
 declare -a int box
@@ -12,3 +23,4 @@ echo
 done
 }
 resetBox
+chooseXorO
