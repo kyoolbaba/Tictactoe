@@ -52,16 +52,30 @@ patternValue=0
 patternselect(){
     max=0
     for i in ${!pattern[@]}; do
-    if [[ $max -lt ${pattern[i]} ]]; then
-        max=${pattern[i]}
-    fi
+         if [[ $max -lt ${pattern[i]} ]]; then
+             max=${pattern[i]}
+         fi
     done
+     min=$max
+    for i in ${!pattern[@]}; do
+         if [[ $min -gt ${pattern[i]} ]]; then
+            min=${pattern[i]}
+         fi
+    done
+    echo $min printing minimum
    # echo $max
-    for i in ${!pattern[@]};do
-    if [[ $max -eq ${pattern[i]} ]]; then
-        patternselected=$i
-        break
+    if [[ $max -eq '5' ]]; then
+        action=$max 
+    elif [[ $min -eq '-3' ]]; then
+        action=$min
+    else
+        action=$max
     fi
+    for i in ${!pattern[@]};do
+        if [[ $action -eq ${pattern[i]} ]]; then
+             patternselected=$i
+            break
+        fi
     done
     #echo $patternselected selected pattern
 
@@ -107,27 +121,27 @@ add=1
         XO="${XandO[count]}"
         status=${winner[$XO]}
     fi
-   echo ${pattern[@]} 
-  echo ${cellsInPattern[@]} 
+  # echo ${pattern[@]} 
+  #echo ${cellsInPattern[@]} 
     patternselect
 }
 
-checkFilledornot(){
+checkFilledOrNot(){
  while [[ true ]]; do
-            cellNotUsed=0
-            cellsFilled=${#filledUpCells[@]}
-                for (( i = 0 ; i < $((cellsFilled+1)) ; i++  )); do
+        cellNotUsed=0
+        cellsFilled=${#filledUpCells[@]}
+            for (( i = 0 ; i < $((cellsFilled+1)) ; i++  )); do
                 if [[ ${filledUpCells[$i]} -eq $place ]]; then
                     cellNotUsed=1
-                    echo The Cell is already occupied please select another cell
+                     echo The Cell is already occupied please select another cell
                     read place
                 fi
-                done   
-            if [[ $cellNotUsed -eq '0' ]]; then
-                filledUpCells[((filledplace++))]=$place
-                break
-            fi
-        done
+            done   
+        if [[ $cellNotUsed -eq '0' ]]; then
+            filledUpCells[((filledplace++))]=$place
+            break
+        fi
+     done
 
 }
 
@@ -141,15 +155,14 @@ echo $c $c1 $c2
 if [[ $k -eq '0' ]]; then
    place=1
 else
-for h in $c2 $c1 $c  ;do
-if [[ "${box[h]}" == "|___|"  ]];then
-echo $h
-place=$h
+    for h in $c2 $c1 $c  ;do
+        if [[ "${box[h]}" == "|___|"  ]];then
+             #echo $h
+            place=$h
+            break
+        fi
 
-break
-fi
-
-done
+    done
 fi
 
 }
@@ -157,13 +170,13 @@ fi
 startgame(){
     for (( k = 0 ; k < 9 ; k++  )); do
         if [[ "${XandO[0]}" == "${XandO[count]}"  ]]; then
-        echo Enter the cell that you want to enter the ${XandO[count]}
-        read place
-       checkFilledornot
-       elif [[  "${XandO[1]}" == "${XandO[count]}" ]]; then
-       echo Computer entered the ${XandO[count]}
-        computerchoices
-       fi
+            echo Enter the cell that you want to enter the ${XandO[count]}
+            read place
+            checkFilledOrNot
+        elif [[  "${XandO[1]}" == "${XandO[count]}" ]]; then
+            echo Computer entered the ${XandO[count]}
+             computerchoices
+        fi
         Box $place
         wincheck
         if [[ "$status" != 'change the turn' ]]; then
@@ -174,6 +187,7 @@ startgame(){
         if [[ $k -eq '8' ]]; then
         status="Its a Tie"
         echo $status
+        break
         fi
     done
 }
@@ -190,7 +204,7 @@ for (( i = 0 ; i < 3 ; i++  )); do
                 box[$cell]=${XandO[count]}
                 echo -n " " ${box[$cell]}" " 
             else 
-                 echo -n " " ${box[$cell]}" " 
+                echo -n " " ${box[$cell]}" " 
              fi   
         fi
         ((cell++))    
