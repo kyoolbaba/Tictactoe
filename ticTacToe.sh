@@ -5,12 +5,10 @@ declare  place=0
 declare -A winner
 declare status="change the turn"
 declare -a pattern
-declare -a entrypattern
 declare -a cellsInPattern
-declare patternselected
+declare patternSelected
 echo "ENter the length"
 read n
-declare noOfElements=$(((n+n+2)*n))
 
 patternCreation(){
 #horizontal patterns
@@ -45,7 +43,6 @@ done
 }
 
 assignXorO(){ 
-#ASSIGNING X OR O FEATURE
     declare toss=("Heads" "Tails")
     if [[ $((RANDOM%2)) -eq '0'  ]]; then
         XandO=("| X |" "| O |")
@@ -55,7 +52,6 @@ assignXorO(){
         winner=( ["| O |"]="You won the game " ["| X |"]="Computer won the game " )
     fi
     echo letter assigned to you is ${XandO[0]} and the computer is ${XandO[1]}
-#TOSS FEATURE
     echo Enter 0 for heads and 1 for tails
     read TOSSED
     r=${toss[$((RANDOM%2))]} 
@@ -70,7 +66,6 @@ assignXorO(){
 #USED TO CHECK THE STATUS OF PATTERN AT EACH TURN
 patternCheck(){
 patternValue=0
-#echo $patternCount printing pattern count
         for (( p=$((patternRange1+1)) ; p<=$patternRange2 ; p++)) ; do 
                     cellNumber=${cellsInPattern[p]}
              if [[ "${box[cellNumber]}" == "${XandO[1]}"  ]]; then
@@ -83,7 +78,7 @@ patternValue=0
         done
         pattern[((patternCount++))]=$patternValue 
 }
-
+#USED FOR SELECT THE PATTERN 
 patternSelect(){
     max=0
     for i in ${!pattern[@]}; do
@@ -97,26 +92,24 @@ patternSelect(){
             min=${pattern[i]}
          fi
     done
-    echo $min printing minimum and printing max $max
-   # echo $max
-   echo printing winning and blocking move  $((n*2 -1)) and $(((-2 *(n-1))+1))
     if [[ $max -eq $((n*2 -1)) ]]; then
         action=$max 
     elif [[ $min -eq $(((-2 *(n-1))+1)) ]]; then
         action=$min
+    elif [[ $max -eq $n ]];then
+        action=$max
     else
         action=$max
     fi
     for i in ${!pattern[@]};do
         if [[ $action -eq ${pattern[i]} ]]; then
-             patternselected=$i
+             patternSelected=$i
             break
         fi
     done
-    echo $patternselected selected pattern
 }
 
-wincheck(){
+winCheck(){
 patternCount=1
 noOfPatterns=$((n+n +2))
 for (( i=1;i<=$noOfPatterns;i++ )); do 
@@ -136,8 +129,7 @@ lineMatch=0
         fi
     done 
 done
-echo ${pattern[@]}
-patternSelect
+patternSelect #echo ${pattern[@]}
 }
 
 checkFilledOrNot(){
@@ -160,11 +152,10 @@ checkFilledOrNot(){
             break
         fi
      done
-
 }
 
 computerchoices() {
-p=$(((patternselected -1) * n))
+p=$(((patternSelected -1) * n))
 patternRange2=$((patternRange1+n))
 echo $patternRange2 and $p
 if [[ $k -eq '0' ]]; then
@@ -173,15 +164,11 @@ else
     for (( h=$((p+1)) ; h<=$patternRange2 ; h++ ))  ;do
     item=${cellsInPattern[h]}
         if [[ "${box[item]}" == "|___|"  ]];then
-             #echo $h
             place=$item
             break
         fi
-      
-
     done
 fi
-
 }
 
 startgame(){
@@ -197,7 +184,7 @@ startgame(){
              checkFilledOrNot
         fi
         Box $place
-        wincheck
+        winCheck
         if [[ "$status" != 'change the turn' ]]; then
             echo $status
             break
