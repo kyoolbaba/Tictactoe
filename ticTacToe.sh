@@ -6,8 +6,43 @@ declare -A winner
 declare status="change the turn"
 declare -a pattern
 declare -a entrypattern
-declare -a cellsInPattern=( 0 1 2 3 4 5 6 7 8 9 1 4 7 2 5 8 3 6 9 1 5 9 3 5 7 )
+declare -a cellsInPattern
 declare patternselected
+echo "ENter the length"
+read n
+declare noOfElements=$(((n+n+2)*n))
+
+patternCreation(){
+#horizontal patterns
+cellsInPattern[((patternCount++))]=0
+for (( i=0;i<$n;i++ )); do
+    hp=0
+    for (( j=1;j<=$n;j++ )); do
+        c=$(((n * i )+j))
+        cellsInPattern[((patternCount++))]=$c
+    done
+done
+#vertical patterns
+for (( i=0;i<$n;i++ )); do
+    hp=0
+    for (( j=1;j<=$n;j++ )); do
+        c=$(((n * (j-1) )+(i+1)))
+        cellsInPattern[((patternCount++))]=$c
+    done
+done
+# diagonal one
+for (( i=0;i<$n;i++ )); do
+    ((diagonalCell1++))   
+    c=$(((n*i)+diagonalCell1))
+    cellsInPattern[((patternCount++))]=$c
+done
+#diagonal two
+for (( i=1;i<=$n;i++ )); do
+    c=$(((n*i)-diagonalCell2))
+    cellsInPattern[((patternCount++))]=$c
+    ((diagonalCell2++)) 
+done
+}
 
 assignXorO(){ 
 #ASSIGNING X OR O FEATURE
@@ -36,20 +71,20 @@ assignXorO(){
 patternCheck(){
 patternValue=0
 #echo $patternCount printing pattern count
-        for k in $a $b $c; do 
-             if [[ "${box[k]}" == "${XandO[1]}"  ]]; then
+        for (( p=$((patternRange1+1)) ; p<=$patternRange2 ; p++)) ; do 
+                    cellNumber=${cellsInPattern[p]}
+             if [[ "${box[cellNumber]}" == "${XandO[1]}"  ]]; then
              patternValue=$((patternValue + 2))
-            elif [[ "${box[k]}" ==  "|___|" ]]; then 
+            elif [[ "${box[cellNumber]}" ==  "|___|" ]]; then 
                  patternValue=$((patternValue + 1))  
-             elif [[ "${box[k]}" ==  "${XandO[0]}" ]]; then 
+             elif [[ "${box[cellNumber]}" ==  "${XandO[0]}" ]]; then 
                 patternValue=$((patternValue - 2))
             fi
         done
-        pattern[((patternCount++))]=$patternValue
-    
+        pattern[((patternCount++))]=$patternValue 
 }
 
-patternselect(){
+patternSelect(){
     max=0
     for i in ${!pattern[@]}; do
          if [[ $max -lt ${pattern[i]} ]]; then
@@ -62,11 +97,12 @@ patternselect(){
             min=${pattern[i]}
          fi
     done
-    echo $min printing minimum
+    echo $min printing minimum and printing max $max
    # echo $max
-    if [[ $max -eq '5' ]]; then
+   echo printing winning and blocking move  $((n*2 -1)) and $(((-2 *(n-1))+1))
+    if [[ $max -eq $((n*2 -1)) ]]; then
         action=$max 
-    elif [[ $min -eq '-3' ]]; then
+    elif [[ $min -eq $(((-2 *(n-1))+1)) ]]; then
         action=$min
     else
         action=$max
@@ -77,53 +113,31 @@ patternselect(){
             break
         fi
     done
-    #echo $patternselected selected pattern
-
+    echo $patternselected selected pattern
 }
 
 wincheck(){
-n=3
 patternCount=1
-#HORIZONTAL CHECK
-add=0
-    for (( i = 0 ; i < 3 ; i++  )); do
-        a=$(((n*add)+1)); b=$(((n*add)+2)); c=$(((n*add)+3))
-        patternCheck
-        if [[ "${box[a]}" == "${XandO[count]}" && "${box[b]}" == "${XandO[count]}" && "${box[c]}" == "${XandO[count]}" ]]; then
-            XO="${XandO[count]}"
-            status=${winner[$XO]}
+noOfPatterns=$((n+n +2))
+for (( i=1;i<=$noOfPatterns;i++ )); do 
+patternRange1=$(((i-1)*n))
+patternRange2=$((patternRange1+n))
+patternCheck
+lineMatch=0
+    for ((j = $((patternRange1+1)); j <= $patternRange2; j++)); do
+    item=${cellsInPattern[j]}
+        if [[ "${box[item]}" == "${XandO[count]}" ]]; then
+         ((lineMatch++))
         fi 
-        ((add++))
-    done
-#VERTICAL CHECK
-add=1
-    for (( i = 0 ; i < 3 ; i++  )); do
-        a=$(((n*0)+add))  b=$(((n*1)+add)) c=$(((n*2)+add))
-        patternCheck
-        if [[ "${box[a]}" == "${XandO[count]}" && "${box[b]}" == "${XandO[count]}" && "${box[c]}" == "${XandO[count]}" ]]; then
-            XO="${XandO[count]}"
-            status=${winner[$XO]}
-        fi 
-        ((add++))
-    done
-
-#Diagonal Check
-    a=$(((n*0)+1)); b=$(((n*1)+2)); c=$(((n*2)+3))
-    patternCheck
-    
-    if [[ "${box[a]}" == "${XandO[count]}" && "${box[b]}" == "${XandO[count]}" && "${box[c]}" == "${XandO[count]}" ]]; then
-        XO="${XandO[count]}" 
-        status=${winner[$XO]}
-    fi
-    a=$(((n*1)-(0))) ; b=$(((n*2)-1)); c=$(((n*3)-2))
-    patternCheck
-    if [[ "${box[a]}" == "${XandO[count]}" && "${box[b]}" == "${XandO[count]}" && "${box[c]}" == "${XandO[count]}" ]]; then
-        XO="${XandO[count]}"
-        status=${winner[$XO]}
-    fi
-  # echo ${pattern[@]} 
-  #echo ${cellsInPattern[@]} 
-    patternselect
+          if [[ $lineMatch -eq $n ]]; then
+         XO="${XandO[count]}" 
+         status=${winner[$XO]}
+         break
+        fi
+    done 
+done
+echo ${pattern[@]}
+patternSelect
 }
 
 checkFilledOrNot(){
@@ -134,6 +148,10 @@ checkFilledOrNot(){
                 if [[ ${filledUpCells[$i]} -eq $place ]]; then
                     cellNotUsed=1
                      echo The Cell is already occupied please select another cell
+                    read place
+                 elif [[ $place -gt $((n*n)) ]]; then
+                    cellNotUsed=1
+                     echo The Cell you entered is out of range
                     read place
                 fi
             done   
@@ -146,21 +164,20 @@ checkFilledOrNot(){
 }
 
 computerchoices() {
-p=$((patternselected * 3))
-c=${cellsInPattern[p]}
-c1=${cellsInPattern[p-1]}
-c2=${cellsInPattern[p-2]}
-echo $c $c1 $c2 
-
+p=$(((patternselected -1) * n))
+patternRange2=$((patternRange1+n))
+echo $patternRange2 and $p
 if [[ $k -eq '0' ]]; then
    place=1
 else
-    for h in $c2 $c1 $c  ;do
-        if [[ "${box[h]}" == "|___|"  ]];then
+    for (( h=$((p+1)) ; h<=$patternRange2 ; h++ ))  ;do
+    item=${cellsInPattern[h]}
+        if [[ "${box[item]}" == "|___|"  ]];then
              #echo $h
-            place=$h
+            place=$item
             break
         fi
+      
 
     done
 fi
@@ -168,14 +185,16 @@ fi
 }
 
 startgame(){
-    for (( k = 0 ; k < 9 ; k++  )); do
+    for (( k = 0 ; k < $((n*n)) ; k++  )); do
+    chances=0
         if [[ "${XandO[0]}" == "${XandO[count]}"  ]]; then
             echo Enter the cell that you want to enter the ${XandO[count]}
             read place
             checkFilledOrNot
         elif [[  "${XandO[1]}" == "${XandO[count]}" ]]; then
             echo Computer entered the ${XandO[count]}
-             computerchoices
+            computerchoices
+             checkFilledOrNot
         fi
         Box $place
         wincheck
@@ -184,7 +203,7 @@ startgame(){
             break
         fi
         count=$(((count+1)%2)) #CHANGING TURN
-        if [[ $k -eq '8' ]]; then
+        if [[ $chances -eq $((n*n-1)) ]]; then
         status="Its a Tie"
         echo $status
         break
@@ -194,8 +213,8 @@ startgame(){
 Box(){
 task=$1
 cell=1
-for (( i = 0 ; i < 3 ; i++  )); do
-    for (( j = 0 ; j < 3 ; j++ )); do
+for (( i = 0 ; i < $n ; i++  )); do
+    for (( j = 0 ; j < $n ; j++ )); do
         if [[ "$task" == "reset" ]]; then 
             box[$cell]="|___|"
             echo -n " " ${box[$cell]}" "
@@ -212,7 +231,7 @@ for (( i = 0 ; i < 3 ; i++  )); do
     echo;echo
 done
 }
+patternCreation
 Box "reset"
 assignXorO
 startgame
-
